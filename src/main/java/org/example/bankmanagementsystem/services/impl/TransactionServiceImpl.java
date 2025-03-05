@@ -47,9 +47,10 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setType(TransactionType.DEPOSIT);
         transaction.setAmount(transactionRequest.getAmount());
         transaction.setTimestamp(LocalDateTime.now());
+        transactionRepository.save(transaction);
         accountRepository.save(sender);
         accountRepository.save(recipient);
-        return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
+        return modelMapper.map(transaction, TransactionResponse.class);
     }
     @Override
     @Transactional
@@ -73,8 +74,9 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setType(TransactionType.TRANSFER);
         transaction.setAmount(transactionRequest.getAmount());
         transaction.setTimestamp(LocalDateTime.now());
+        transactionRepository.save(transaction);
         accountRepository.save(account);
         accountRepository.save(transferAccount);
-        return modelMapper.map(transactionRepository.save(transaction), TransactionResponse.class);
+        return modelMapper.map(transaction, TransactionResponse.class);
     }
 }

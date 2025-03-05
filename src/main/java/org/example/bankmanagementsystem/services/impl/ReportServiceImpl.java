@@ -23,7 +23,8 @@ public class ReportServiceImpl implements ReportService {
     @Override
     @Transactional(readOnly = true)
     public byte[] generateAccountStatement(Long accountId) {
-        List<Transaction> transactions = transactionRepository.findByAccountId(accountId);
+        // Изменяем запрос так, чтобы выбирались транзакции, где account является либо отправителем, либо получателем.
+        List<Transaction> transactions = transactionRepository.findByAccountIdOrRecipientAccountId(accountId, accountId);
 
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage();
@@ -41,9 +42,17 @@ public class ReportServiceImpl implements ReportService {
                 for (Transaction transaction : transactions) {
                     contentStream.beginText();
                     contentStream.newLineAtOffset(50, y);
-                    contentStream.showText(transaction.getTimestamp() + " | " +
-                            transaction.getType() + " | " +
-                            transaction.getAmount());
+                    StringBuilder line = new StringBuilder();
+                    line.append(transaction.getTimestamp())
+                            .append(" | ")
+                            .append(transaction.getType())
+                            .append(" | ")
+                            .append(transaction.getAmount());
+                    // Выводим идентификатор получателя вместо вызова toString() всего объекта
+                    if (transaction.getRecipientAccount() != null) {
+                        line.append(" | Recipient ID: ").append(transaction.getRecipientAccount().getId());
+                    }
+                    contentStream.showText(line.toString());
                     contentStream.endText();
                     y -= 20;
                 }
